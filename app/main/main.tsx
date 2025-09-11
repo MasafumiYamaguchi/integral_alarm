@@ -144,6 +144,7 @@ export const Main = () => {
     setTimeout(() => {
       if (audioRef.current) {
         audioRef.current.currentTime = 0;
+        audioRef.current.loop = true;
         audioRef.current.play();
       }
       const newProblem = parseCSV(csvData);
@@ -214,6 +215,7 @@ export const Main = () => {
             audioRef.current.pause();
           }}
           problem={problemData.problem}
+          answer={problemData.answer}
         />
       )}
     </div>

@@ -14,6 +14,8 @@ interface ProblemProps {
 }
 
 const Problem = ({ id, problem, answer, onClose }: ProblemProps) => {
+  const [userAnswer, setUserAnswer] = React.useState("");
+
   return (
     <div className="absolute top-0 left-0 w-full h-full z-50 flex items-center justify-center bg-black opacity-90 text-white">
       <div className="content">
@@ -21,8 +23,26 @@ const Problem = ({ id, problem, answer, onClose }: ProblemProps) => {
           <span className="mr-2 text">問題番号</span>
           <span>{String(id)}</span>
         </h1>
-        <BlockMath math={problem || ""} />
-        <button onClick={onClose}>閉じる</button>
+        <BlockMath math={problem ? `\\Huge ${problem}` : ""} />
+        <input
+          type="text"
+          value={userAnswer}
+          onChange={(e) => setUserAnswer(e.target.value)}
+          className="border border-gray-300 p-2 rounded mt-4 mb-4 w-full text-white bg-black"
+          placeholder="答えを入力"
+        />
+        <button
+          onClick={() => {
+            if (userAnswer === answer) {
+              alert("正解です！");
+              onClose();
+            } else {
+              alert("不正解です。");
+            }
+          }}
+        >
+          回答
+        </button>
       </div>
     </div>
   );
