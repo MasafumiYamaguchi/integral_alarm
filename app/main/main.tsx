@@ -212,7 +212,9 @@ export const Main = () => {
           id={problemData.id}
           onClose={() => {
             setIsAlarmPlaying(false);
-            audioRef.current.pause();
+            if (audioRef.current) {
+              audioRef.current.pause();
+            }
           }}
           problem={problemData.problem}
           answer={problemData.answer}
