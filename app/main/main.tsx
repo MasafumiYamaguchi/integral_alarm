@@ -170,7 +170,7 @@ export const Main = () => {
               className="bg-blue-500 text-white px-4 py-2 rounded"
               onClick={() => {
                 if (isTimerSet === true) {
-                  alert("既にタイマーがセットされています");
+                  alert("既にアラームがセットされています");
                   return;
                 }
                 setAlarm();
@@ -180,14 +180,14 @@ export const Main = () => {
             </button>
           </div>
           <div className="text-xl text-center">
-            {isTimerSet ? "タイマーセット済み" : "タイマー未設定"}
+            {isTimerSet ? "アラームセット済み" : "アラーム未設定"}
           </div>
         </div>
       </div>
       <div className="Modal h-full w-full fixed top-0 left-0 justify-center items-center hidden">
         <div className="background bg-black opacity-50 h-full w-full absolute"></div>
         <div className="content bg-black p-5 rounded z-10 border border-white">
-          <h2 className="text-2xl font-bold mb-4">タイマー設定</h2>
+          <h2 className="text-2xl font-bold mb-4">アラーム設定</h2>
           <div className="flex">
             <input
               type="time"
@@ -220,6 +220,9 @@ export const Main = () => {
           answer={problemData.answer}
         />
       )}
+      <div className="footer">
+        <footer className="text-center p-4 text-gray-500">© 2025 ふみ</footer>
+      </div>
     </div>
   );
 };

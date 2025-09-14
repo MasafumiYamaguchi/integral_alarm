@@ -31,18 +31,21 @@ const Problem = ({ id, problem, answer, onClose }: ProblemProps) => {
           className="border border-gray-300 p-2 rounded mt-4 mb-4 w-full text-white bg-black"
           placeholder="答えを入力"
         />
-        <button
-          onClick={() => {
-            if (userAnswer === answer) {
-              alert("正解です！");
-              onClose();
-            } else {
-              alert("不正解です。");
-            }
-          }}
-        >
-          回答
-        </button>
+        <div className="flex justify-center">
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded mr-2 hover:bg-blue-600 "
+            onClick={() => {
+              if (userAnswer === answer) {
+                alert("正解です！");
+                onClose();
+              } else {
+                alert("不正解です。");
+              }
+            }}
+          >
+            回答
+          </button>
+        </div>
       </div>
     </div>
   );
