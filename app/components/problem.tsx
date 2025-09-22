@@ -10,10 +10,17 @@ interface ProblemProps {
   id: number;
   problem?: string;
   answer?: string;
+  isActiveSnooze: boolean;
   onClose: () => void;
 }
 
-const Problem = ({ id, problem, answer, onClose }: ProblemProps) => {
+const Problem = ({
+  id,
+  problem,
+  answer,
+  isActiveSnooze,
+  onClose,
+}: ProblemProps) => {
   const [userAnswer, setUserAnswer] = React.useState("");
 
   return (

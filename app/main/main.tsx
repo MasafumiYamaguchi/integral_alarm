@@ -65,6 +65,7 @@ export const Main = () => {
   const [timer, setTimer] = React.useState("00:00");
   const [isTimerSet, setIsTimerSet] = React.useState(false);
   const [isAlarmPlaying, setIsAlarmPlaying] = React.useState(false);
+  const [isActiveSnooze, setIsActiveSnooze] = React.useState(false);
   const [problemData, setProblemData] = React.useState<{
     id: number;
     problem: string;
@@ -78,6 +79,10 @@ export const Main = () => {
   const [csvLoaded, setCsvLoaded] = React.useState(false);
 
   const audioRef = React.useRef<HTMLAudioElement>(null);
+
+  // 追加: スヌーズの一回限り制御とタイマーID保持
+  const [hasSnoozed, setHasSnoozed] = React.useState(false);
+  const snoozeTimerRef = React.useRef<number | null>(null);
 
   React.useEffect(() => {
     fetch("/problems/problems.csv")
@@ -97,6 +102,14 @@ export const Main = () => {
         // CSVが読み込めない場合はデフォルト問題を使用
         setCsvLoaded(true);
       });
+
+    // 追加: アンマウント時にスヌーズタイマーをクリーンアップ
+    return () => {
+      if (snoozeTimerRef.current !== null) {
+        clearTimeout(snoozeTimerRef.current);
+        snoozeTimerRef.current = null;
+      }
+    };
   }, []);
 
   function showSetTimer() {
@@ -122,6 +135,12 @@ export const Main = () => {
       return;
     }
 
+    // 追加: 既存スヌーズをクリア（新規アラーム優先）
+    if (snoozeTimerRef.current !== null) {
+      clearTimeout(snoozeTimerRef.current);
+      snoozeTimerRef.current = null;
+    }
+
     setIsTimerSet(true);
     const setTime = timer;
     const now = new Date();
@@ -142,6 +161,9 @@ export const Main = () => {
       diff = alarmTime.getTime() - now.getTime();
     }
     setTimeout(() => {
+      // 追加: 新しいアラームサイクル開始時にスヌーズ済みフラグをリセット
+      setHasSnoozed(false);
+
       if (audioRef.current) {
         audioRef.current.currentTime = 0;
         audioRef.current.loop = true;
@@ -206,6 +228,14 @@ export const Main = () => {
             >
               設定
             </button>
+            <h3 className="text-sm sm:text-base flex items-center ml-4">
+              スヌーズ機能:
+            </h3>
+            <input
+              type="checkbox"
+              checked={isActiveSnooze}
+              onChange={() => setIsActiveSnooze(!isActiveSnooze)}
+            />
           </div>
         </div>
       </div>
@@ -218,9 +248,30 @@ export const Main = () => {
             if (audioRef.current) {
               audioRef.current.pause();
             }
+
+            // 追加: スヌーズが有効で、まだ一度もスヌーズしていなければ10分後に一度だけ鳴らす
+            if (isActiveSnooze && !hasSnoozed) {
+              const id = window.setTimeout(
+                () => {
+                  if (audioRef.current) {
+                    audioRef.current.currentTime = 0;
+                    audioRef.current.loop = true;
+                    audioRef.current.play();
+                  }
+                  const newProblem = parseCSV(csvData);
+                  setProblemData(newProblem);
+                  setIsAlarmPlaying(true);
+                  // hasSnoozed は true のまま（スヌーズは一回限り）
+                },
+                10 * 60 * 1000
+              ); // 10分
+              snoozeTimerRef.current = id;
+              setHasSnoozed(true);
+            }
           }}
           problem={problemData.problem}
           answer={problemData.answer}
+          isActiveSnooze={isActiveSnooze}
         />
       )}
       <div className="footer">
