@@ -83,6 +83,8 @@ export const Main = () => {
   // 追加: スヌーズの一回限り制御とタイマーID保持
   const [hasSnoozed, setHasSnoozed] = React.useState(false);
   const snoozeTimerRef = React.useRef<number | null>(null);
+  // スヌーズの予約状態（表示用）
+  const [isSnoozePending, setIsSnoozePending] = React.useState(false);
 
   React.useEffect(() => {
     fetch("/problems/problems.csv")
@@ -109,8 +111,21 @@ export const Main = () => {
         clearTimeout(snoozeTimerRef.current);
         snoozeTimerRef.current = null;
       }
+      setIsSnoozePending(false);
     };
   }, []);
+
+  // スヌーズON/OFF切り替え時の表示・予約クリア
+  React.useEffect(() => {
+    if (!isActiveSnooze) {
+      if (snoozeTimerRef.current !== null) {
+        clearTimeout(snoozeTimerRef.current);
+        snoozeTimerRef.current = null;
+      }
+      setIsSnoozePending(false);
+      setHasSnoozed(false);
+    }
+  }, [isActiveSnooze]);
 
   function showSetTimer() {
     const modal = document.querySelector(".Modal");
@@ -135,11 +150,12 @@ export const Main = () => {
       return;
     }
 
-    // 追加: 既存スヌーズをクリア（新規アラーム優先）
+    // 既存スヌーズをクリア（新規アラーム優先）
     if (snoozeTimerRef.current !== null) {
       clearTimeout(snoozeTimerRef.current);
       snoozeTimerRef.current = null;
     }
+    setIsSnoozePending(false);
 
     setIsTimerSet(true);
     const setTime = timer;
@@ -207,6 +223,20 @@ export const Main = () => {
           <div className="text-base md:text-xl text-center">
             {isTimerSet ? "アラームセット済み" : "アラーム未設定"}
           </div>
+          <div className="text-base md:text-xl text-center mt-2">
+            スヌーズ: {isActiveSnooze ? "有効" : "無効"}
+            {isActiveSnooze && (
+              <div className="mt-1 text-sm text-gray-400">
+                {isSnoozePending
+                  ? "スヌーズ予約中（10分後に再通知）"
+                  : hasSnoozed
+                    ? "スヌーズ済み（今回の再通知は完了）"
+                    : isTimerSet
+                      ? "スヌーズ待機中（解除で一度だけ再通知）"
+                      : null}
+              </div>
+            )}
+          </div>
         </div>
       </div>
       <div className="Modal h-full w-full fixed top-0 left-0 justify-center items-center hidden">
@@ -249,7 +279,7 @@ export const Main = () => {
               audioRef.current.pause();
             }
 
-            // 追加: スヌーズが有効で、まだ一度もスヌーズしていなければ10分後に一度だけ鳴らす
+            // スヌーズONかつ未スヌーズなら10分後に一度だけ再通知
             if (isActiveSnooze && !hasSnoozed) {
               const id = window.setTimeout(
                 () => {
@@ -261,12 +291,16 @@ export const Main = () => {
                   const newProblem = parseCSV(csvData);
                   setProblemData(newProblem);
                   setIsAlarmPlaying(true);
-                  // hasSnoozed は true のまま（スヌーズは一回限り）
+
+                  // 発火後は予約状態をクリア
+                  snoozeTimerRef.current = null;
+                  setIsSnoozePending(false);
                 },
                 10 * 60 * 1000
               ); // 10分
               snoozeTimerRef.current = id;
               setHasSnoozed(true);
+              setIsSnoozePending(true);
             }
           }}
           problem={problemData.problem}
